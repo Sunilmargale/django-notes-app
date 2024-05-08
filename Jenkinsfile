@@ -1,33 +1,32 @@
 pipeline {
     agent any
-
     stages {
-        stage("Code"){
+        stage("code"){
             steps {
-                echo "Clone Code"
-                git url:"https://github.com/suniltechnology/django-node-app.git", branch: "master"
+            echo "cloning the code" 
+            git url:"https://github.com/suniltechnology/django-node-app.git", branch: "master"
             }
         }
-        stage("Build"){
+        stage("build"){
             steps {
-                echo "Build the image"
-                sh "docker build -t node-app ."
+                echo "building the image"
+                sh "docker build -t notes-app ."
             }
         }
-        stage("Push to Docker Hub"){
+        stage("push to dockerhub"){
             steps {
-                echo "Pushing the image to docker hub"
-                withCredentials([usernamePassword(credentialsId:"dockerHub",passwordVariable:"dockerHubPass",usernameVariable:"dockerHubUser")]){
-                sh "docker tag node-app ${env.dockerHubUser}/node-app:latest"
-                sh "docker login -u ${env.dockerHubUser} -p ${env.dockerHubPass}"
-                sh "docker push ${env.dockerHubUser}/node-app:latest"
+                echo "pushing the image to dockerhub"
+                withCredentials([usernamePassword(credentialsId:"docker-hub",passwordVariable:"dockerHubPass",usernameVariable:"dockerHubUser")]){
+                sh "docker login -u ${env.dockerHubUser} -p ${env.dockerHubPass}"  
+                sh "docker tag notes-app ${env.dockerHubUser}/notes-app:latest"
+                sh "docker push ${env.dockerHubUser}/notes-app:latest"
                 }
-            }
+            } 
         }
-        stage("Deploy"){
+        stage("deploy"){
             steps {
-                echo "Deploying the container"
-                sh "docker-compose down && docker-compose up -d"
+                echo "deploying the container"
+                sh "docker run -d -p 8000:8000 sunilmargale/notes-app:latest"
             }
         }
     }
